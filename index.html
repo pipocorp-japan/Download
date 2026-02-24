@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>三菱トレインビジョン再現 (下部整理版)</title>
+    <style>
+        body {
+            background-color: #1a1a1a;
+            margin: 0;
+            padding: 0;
+            font-family: "Helvetica Neue", Helvetica, "Hiragino Kaku Gothic ProN", sans-serif;
+            overflow: hidden;
+            color: #333;
+        }
+
+        /* 16:9 モニター筐体 */
+        .monitor {
+            width: 100vw;
+            height: 56.25vw;
+            max-width: 1280px;
+            max-height: 720px;
+            background-color: #fff;
+            margin: 0 auto;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 上部ヘッダー（固定背景） */
+        .header-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 35%;
+            background-color: #008000;
+            z-index: 1;
+        }
+
+        /* 上部コンテンツ（マスク） */
+        .header-content {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 35%;
+            z-index: 2;
+            overflow: hidden;
+            display: -webkit-box;
+            display: -webkit-flex;
+            display: flex;
+            -webkit-box-align: center;
+            -webkit-align-items: center;
+            align-items: center;
+            padding: 0 50px;
+            box-sizing: border-box;
+        }
+
+        /* 「次は」ラベル（フェードアニメーション） */
+        .label-container {
+            width: 25%;
+            position: relative;
+            height: 60px;
+            color: white;
+            font-size: 3.5vw;
+            font-weight: bold;
+        }
+
+        .label-item {
+            position: absolute;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            -webkit-transition: opacity 0.5s linear;
+            transition: opacity 0.5s linear;
+        }
+
+        .label-item.active {
+            opacity: 1;
+        }
+
+        /* 駅名回転コンテナ */
+        .station-stage {
+            width: 75%;
+            height: 100%;
+            -webkit-perspective: 1000px;
+            perspective: 1000px;
+        }
+
+        .cube-text {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            -webkit-transform-style: preserve-3d;
+            transform-style: preserve-3d;
+            -webkit-transition: -webkit-transform 0.6s linear;
+            transition: transform 0.6s linear;
+        }
+
+        .face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            display: -webkit-box;
+            display: -webkit-flex;
+            display: flex;
+            -webkit-box-align: center;
+            -webkit-align-items: center;
+            align-items: center;
+            color: #fff;
+        }
+
+        .face-jp { -webkit-transform: rotateX(0deg) translateZ(80px); transform: rotateX(0deg) translateZ(80px); }
+        .face-en { -webkit-transform: rotateX(-90deg) translateZ(80px); transform: rotateX(-90deg) translateZ(80px); }
+        .face-zh { -webkit-transform: rotateX(-180deg) translateZ(80px); transform: rotateX(-180deg) translateZ(80px); }
+        .face-ko { -webkit-transform: rotateX(-270deg) translateZ(80px); transform: rotateX(-270deg) translateZ(80px); }
+
+        .station-text { font-size: 9.5vw; font-weight: 900; }
+
+        /* 下部エリア */
+        .lower-area {
+            position: absolute;
+            top: 35%;
+            width: 100%;
+            height: 65%;
+            background-color: #fff;
+            display: -webkit-box;
+            display: -webkit-flex;
+            display: flex;
+            -webkit-box-orient: vertical;
+            -webkit-box-direction: normal;
+            -webkit-flex-direction: column;
+            flex-direction: column;
+            -webkit-box-pack: center;
+            -webkit-justify-content: center;
+            justify-content: center;
+        }
+
+        /* ナンバリングとメッセージを整理 */
+        .status-info {
+            padding: 0 60px;
+            display: -webkit-box;
+            display: -webkit-flex;
+            display: flex;
+            -webkit-box-align: center;
+            -webkit-align-items: center;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+
+        .numbering-img {
+            width: 120px;
+            height: 120px;
+            margin-right: 40px;
+            object-fit: contain;
+            display: none;
+        }
+
+        .message-box {
+            -webkit-box-flex: 1;
+            -webkit-flex: 1;
+            flex: 1;
+            padding: 25px;
+            background-color: #f8f8f8;
+            border-left: 12px solid #008000;
+            font-size: 3.5vw;
+            font-weight: bold;
+            line-height: 1.4;
+            min-height: 1.5em;
+        }
+
+        /* 下部の装飾ライン */
+        .bottom-bar-wrap {
+            margin: 0 60px;
+            height: 15px;
+            background: #eee;
+            position: relative;
+        }
+
+        .bottom-bar-fill {
+            position: absolute;
+            left: 0;
+            width: 50%;
+            height: 100%;
+            background: #008000;
+        }
+
+        /* 設定画面 */
+        .settings-panel {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 9999;
+            color: white;
+            padding: 20px;
+            box-sizing: border-box;
+            display: none;
+            overflow-y: auto;
+        }
+
+        .setting-group { margin-bottom: 12px; }
+        .setting-group label { display: block; font-size: 12px; color: #aaa; }
+        .setting-group input, .setting-group textarea { 
+            width: 100%; padding: 10px; font-size: 16px; border-radius: 4px; border: none; margin-top: 4px;
+        }
+
+        .btn-row { display: flex; gap: 10px; margin-top: 15px; }
+        .btn { flex: 1; padding: 12px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; }
+        .btn-save { background: #008000; color: white; }
+        .btn-close { background: #444; color: white; }
+
+        .config-btn {
+            position: fixed; bottom: 15px; right: 15px;
+            width: 44px; height: 44px; background: rgba(0,0,0,0.4);
+            color: white; border: none; border-radius: 50%; z-index: 1000; font-size: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="monitor">
+        <!-- 上部：動かない背景 -->
+        <div class="header-bg" id="ui-bg"></div>
+        
+        <!-- 上部：コンテンツ -->
+        <div class="header-content">
+            <!-- ラベル部（フェード） -->
+            <div class="label-container">
+                <div class="label-item active">次は</div>
+                <div class="label-item">Next</div>
+                <div class="label-item">下一站</div>
+                <div class="label-item">다음은</div>
+            </div>
+
+            <!-- 駅名部（回転） -->
+            <div class="station-stage">
+                <div class="cube-text" id="cube">
+                    <div class="face face-jp"><span class="station-text" id="d-jp">渋谷</span></div>
+                    <div class="face face-en"><span class="station-text" id="d-en">Shibuya</span></div>
+                    <div class="face face-zh"><span class="station-text" id="d-zh">涩谷</span></div>
+                    <div class="face face-ko"><span class="station-text" id="d-ko">시부야</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 下部：メッセージと装飾のみ -->
+        <div class="lower-area">
+            <div class="status-info">
+                <img id="d-num" class="numbering-img" src="">
+                <div class="message-box" id="ui-msg-border">
+                    <span id="d-msg">次は 渋谷 に止まります。</span>
+                </div>
+            </div>
+            
+            <div class="bottom-bar-wrap">
+                <div id="ui-bar" class="bottom-bar-fill"></div>
+            </div>
+        </div>
+    </div>
+
+    <button class="config-btn" onclick="openCfg()">⚙</button>
+
+    <div id="cfg-panel" class="settings-panel">
+        <h3>トレインビジョン設定</h3>
+        <div class="setting-group">
+            <label>テーマカラー (Hex: #008000等)</label>
+            <input type="text" id="i-color" value="#008000">
+        </div>
+        <div class="setting-group">
+            <label>ナンバリング画像URL (ブラウザに保存されます)</label>
+            <input type="text" id="i-num" placeholder="https://...">
+        </div>
+        <div class="setting-group">
+            <label>駅名設定</label>
+            <div style="display:flex; gap:2%">
+                <input type="text" id="i-jp" value="渋谷" style="width:49%">
+                <input type="text" id="i-en" value="Shibuya" style="width:49%">
+            </div>
+            <div style="display:flex; gap:2%; margin-top:5px;">
+                <input type="text" id="i-zh" value="涩谷" style="width:49%">
+                <input type="text" id="i-ko" value="시부야" style="width:49%">
+            </div>
+        </div>
+        <div class="setting-group">
+            <label>下部表示メッセージ</label>
+            <textarea id="i-msg" rows="3">次は 渋谷 に止まります。</textarea>
+        </div>
+        <div class="btn-row">
+            <button class="btn btn-save" onclick="saveCfg()">適用・保存</button>
+            <button class="btn btn-close" onclick="closeCfg()">閉じる</button>
+        </div>
+    </div>
+
+    <script>
+        var cube = document.getElementById('cube');
+        var labels = document.querySelectorAll('.label-item');
+        var step = 0;
+
+        function updateDisplay() {
+            step++;
+            var index = step % 4;
+            
+            // 文字の回転（linear）
+            var angle = step * 90;
+            cube.style.webkitTransform = "rotateX(" + angle + "deg)";
+            cube.style.transform = "rotateX(" + angle + "deg)";
+
+            // ラベルのフェード
+            for(var i=0; i<labels.length; i++) {
+                labels[i].className = "label-item";
+            }
+            labels[index].className = "label-item active";
+        }
+
+        setInterval(updateDisplay, 5000);
+
+        function saveCfg() {
+            var cfg = {
+                color: document.getElementById('i-color').value,
+                num: document.getElementById('i-num').value,
+                jp: document.getElementById('i-jp').value,
+                en: document.getElementById('i-en').value,
+                zh: document.getElementById('i-zh').value,
+                ko: document.getElementById('i-ko').value,
+                msg: document.getElementById('i-msg').value
+            };
+            localStorage.setItem('tv_v3_config', JSON.stringify(cfg));
+            apply(cfg);
+            closeCfg();
+        }
+
+        function apply(cfg) {
+            document.getElementById('ui-bg').style.backgroundColor = cfg.color;
+            document.getElementById('ui-bar').style.backgroundColor = cfg.color;
+            document.getElementById('ui-msg-border').style.borderColor = cfg.color;
+            
+            document.getElementById('d-jp').innerText = cfg.jp;
+            document.getElementById('d-en').innerText = cfg.en;
+            document.getElementById('d-zh').innerText = cfg.zh;
+            document.getElementById('d-ko').innerText = cfg.ko;
+            document.getElementById('d-msg').innerText = cfg.msg;
+
+            var nImg = document.getElementById('d-num');
+            if(cfg.num && cfg.num.length > 5) {
+                nImg.src = cfg.num;
+                nImg.style.display = 'block';
+            } else {
+                nImg.style.display = 'none';
+            }
+        }
+
+        function openCfg() { document.getElementById('cfg-panel').style.display = 'block'; }
+        function closeCfg() { document.getElementById('cfg-panel').style.display = 'none'; }
+
+        window.onload = function() {
+            var saved = localStorage.getItem('tv_v3_config');
+            if(saved) {
+                var c = JSON.parse(saved);
+                apply(c);
+                document.getElementById('i-color').value = c.color;
+                document.getElementById('i-num').value = c.num;
+                document.getElementById('i-jp').value = c.jp;
+                document.getElementById('i-en').value = c.en;
+                document.getElementById('i-zh').value = c.zh;
+                document.getElementById('i-ko').value = c.ko;
+                document.getElementById('i-msg').value = c.msg;
+            }
+        };
+    </script>
+</body>
+</html>
