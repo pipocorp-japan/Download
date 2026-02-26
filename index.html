@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>三菱トレインビジョン再現 (号車UI統一版)</title>
+    <title>三菱トレインビジョン再現 (ピポラボ・デフォルト設定版)</title>
     <style>
         body {
             background-color: #f0f0f0;
@@ -76,7 +76,7 @@
             width: 30vw;
         }
 
-        /* 号車表示エリア (数字ボックスを固定) */
+        /* 号車表示エリア */
         .car-info-group {
             display: flex;
             align-items: center;
@@ -84,7 +84,6 @@
             font-weight: bold;
         }
 
-        /* 数字を囲う灰色の角丸正方形 (全言語共通でここに固定) */
         .car-number-box {
             background-color: #888;
             color: white;
@@ -98,7 +97,6 @@
             margin: 0 10px;
         }
 
-        /* ラベル（号車 / Car no. / ...）のフェード用コンテナ */
         .car-label-side {
             position: relative;
             height: 3.2vw;
@@ -106,10 +104,9 @@
             align-items: center;
         }
 
-        .label-before { width: 8vw; justify-content: flex-end; } /* Car no. 用 */
-        .label-after { width: 6vw; justify-content: flex-start; }  /* 号車 用 */
+        .label-before { width: 8vw; justify-content: flex-end; }
+        .label-after { width: 6vw; justify-content: flex-start; }
 
-        /* 共通：フェードテキスト */
         .fade-container {
             position: absolute;
             opacity: 0;
@@ -149,7 +146,7 @@
             width: 9vw;
             margin-left: 3vw;
             object-fit: contain;
-            display: none;
+            display: block;
         }
 
         .station-stage {
@@ -197,10 +194,10 @@
             overflow-y: auto;
         }
 
-        .setting-group { margin-bottom: 12px; }
-        .setting-group label { display: block; font-size: 11px; color: #aaa; }
+        .setting-group { margin-bottom: 15px; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        .setting-group label { display: block; font-size: 11px; color: #aaa; margin-bottom: 5px; }
         .setting-group input { 
-            width: 100%; padding: 10px; font-size: 16px; border-radius: 4px; border: none; margin-top: 4px;
+            width: 100%; padding: 10px; font-size: 14px; border-radius: 4px; border: none; margin-bottom: 5px; box-sizing: border-box;
         }
 
         .btn-row { display: flex; gap: 10px; margin-top: 15px; }
@@ -218,7 +215,6 @@
 <body>
 
     <div class="monitor">
-        <!-- 上部：種別・行先・号車 -->
         <div class="header-top">
             <div class="info-left">
                 <div class="type-container-wrap" id="type-container">
@@ -228,37 +224,30 @@
                     <div class="type-box">보통</div>
                 </div>
                 <div class="dest-wrap" id="dest-container">
-                    <div class="fade-container active">西船橋 行き</div>
-                    <div class="fade-container">for Nishi-Funabashi</div>
-                    <div class="fade-container">开往 西船桥</div>
-                    <div class="fade-container">니시후나바시 行</div>
+                    <div class="fade-container active" id="d-dest-jp">西船橋 行き</div>
+                    <div class="fade-container" id="d-dest-en">for Nishi-Funabashi</div>
+                    <div class="fade-container" id="d-dest-zh">开往 西船桥</div>
+                    <div class="fade-container" id="d-dest-ko">니시후나바시 行</div>
                 </div>
             </div>
 
-            <!-- 号車：Car no. [1] 号車 形式 -->
             <div class="car-info-group">
-                <!-- 数字の左側に来るラベル (Car no. 用) -->
                 <div class="car-label-side label-before" id="car-before-container">
-                    <div class="fade-container"></div> <!-- JP: 空白 -->
-                    <div class="fade-container active">Car no.</div> <!-- EN: Car no. -->
-                    <div class="fade-container"></div> <!-- ZH: 空白 -->
-                    <div class="fade-container"></div> <!-- KO: 空白 -->
+                    <div class="fade-container"></div>
+                    <div class="fade-container active">Car no.</div>
+                    <div class="fade-container"></div>
+                    <div class="fade-container"></div>
                 </div>
-
-                <!-- 固定の数字ボックス -->
                 <div class="car-number-box" id="d-car-num">1</div>
-
-                <!-- 数字の右側に来るラベル (号車 用) -->
                 <div class="car-label-side label-after" id="car-after-container">
-                    <div class="fade-container active">号車</div> <!-- JP -->
-                    <div class="fade-container"></div> <!-- EN: 空白 -->
-                    <div class="fade-container">号车</div> <!-- ZH -->
-                    <div class="fade-container">호차</div> <!-- KO -->
+                    <div class="fade-container active">号車</div>
+                    <div class="fade-container"></div>
+                    <div class="fade-container">号车</div>
+                    <div class="fade-container">호차</div>
                 </div>
             </div>
         </div>
 
-        <!-- メイン表示 -->
         <div class="main-display">
             <div class="fixed-elements">
                 <div class="label-wrap" id="label-container">
@@ -267,15 +256,15 @@
                     <div class="fade-container">下一站</div>
                     <div class="fade-container">다음은</div>
                 </div>
-                <img class="numbering-fixed" id="d-num-fixed" src="">
+                <img class="numbering-fixed" id="d-num-fixed" src="https://pipocorp-japan.github.io/asset/Newpipo.jpg">
             </div>
 
             <div class="station-stage">
                 <div class="cube-text" id="cube">
-                    <div class="face face-jp"><span class="station-text" id="d-jp">渋谷</span></div>
-                    <div class="face face-en"><span class="station-text" id="d-en">Shibuya</span></div>
-                    <div class="face face-zh"><span class="station-text" id="d-zh">涩谷</span></div>
-                    <div class="face face-ko"><span class="station-text" id="d-ko">시부야</span></div>
+                    <div class="face face-jp"><span class="station-text" id="d-jp">ピポラボ</span></div>
+                    <div class="face face-en"><span class="station-text" id="d-en">pipoLab</span></div>
+                    <div class="face face-zh"><span class="station-text" id="d-zh">皮波实验室</span></div>
+                    <div class="face face-ko"><span class="station-text" id="d-ko">피포라 보라토리</span></div>
                 </div>
             </div>
         </div>
@@ -285,26 +274,29 @@
 
     <div id="cfg-panel" class="settings-panel">
         <h3>トレインビジョン設定</h3>
+        
         <div class="setting-group">
-            <label>行先設定 (JP / EN)</label>
+            <label>駅名 (JP / EN / ZH / KO)</label>
+            <input type="text" id="i-jp" value="ピポラボ">
+            <input type="text" id="i-en" value="pipoLab">
+            <input type="text" id="i-zh" value="皮波实验室">
+            <input type="text" id="i-ko" value="피포ラ 보라토리">
+        </div>
+
+        <div class="setting-group">
+            <label>行先 (JP / EN / ZH / KO)</label>
             <input type="text" id="i-dest-jp" value="西船橋 行き">
-            <input type="text" id="i-dest-en" value="for Nishi-Funabashi" style="margin-top:5px">
+            <input type="text" id="i-dest-en" value="for Nishi-Funabashi">
+            <input type="text" id="i-dest-zh" value="开往 西船桥">
+            <input type="text" id="i-dest-ko" value="니시후나바시 行">
         </div>
+
         <div class="setting-group">
-            <label>号車番号</label>
+            <label>号車番号 / ナンバリング画像URL</label>
             <input type="text" id="i-car-num" value="1">
+            <input type="text" id="i-num" value="https://pipocorp-japan.github.io/asset/Newpipo.jpg">
         </div>
-        <div class="setting-group">
-            <label>ナンバリング画像URL</label>
-            <input type="text" id="i-num" placeholder="https://...">
-        </div>
-        <div class="setting-group">
-            <label>駅名設定</label>
-            <div style="display:flex; gap:2%">
-                <input type="text" id="i-jp" value="渋谷" style="width:49%">
-                <input type="text" id="i-en" value="Shibuya" style="width:49%">
-            </div>
-        </div>
+
         <div class="btn-row">
             <button class="btn btn-save" onclick="saveCfg()">適用・保存</button>
             <button class="btn btn-close" onclick="closeCfg()">閉じる</button>
@@ -318,12 +310,9 @@
         function updateAllTranslations() {
             step++;
             var index = step % 4;
-            
-            // 駅名回転
             var angle = step * -90; 
             cube.style.transform = "rotateX(" + angle + "deg)";
 
-            // フェード同期
             toggleFade('label-container', index);
             toggleFade('dest-container', index);
             toggleFade('type-container', index);
@@ -343,39 +332,56 @@
 
         function saveCfg() {
             var cfg = {
+                jp: document.getElementById('i-jp').value,
+                en: document.getElementById('i-en').value,
+                zh: document.getElementById('i-zh').value,
+                ko: document.getElementById('i-ko').value,
                 destJp: document.getElementById('i-dest-jp').value,
                 destEn: document.getElementById('i-dest-en').value,
+                destZh: document.getElementById('i-dest-zh').value,
+                destKo: document.getElementById('i-dest-ko').value,
                 carNum: document.getElementById('i-car-num').value,
-                num: document.getElementById('i-num').value,
-                jp: document.getElementById('i-jp').value,
-                en: document.getElementById('i-en').value
+                num: document.getElementById('i-num').value
             };
-            localStorage.setItem('tv_v11_config', JSON.stringify(cfg));
+            localStorage.setItem('tv_v12_config', JSON.stringify(cfg));
             apply(cfg);
             closeCfg();
         }
 
         function apply(cfg) {
-            document.getElementById('d-dest-container-0').innerText = cfg.destJp; // 簡易
-            document.getElementById('d-car-num').innerText = cfg.carNum;
             document.getElementById('d-jp').innerText = cfg.jp;
             document.getElementById('d-en').innerText = cfg.en;
+            document.getElementById('d-zh').innerText = cfg.zh;
+            document.getElementById('d-ko').innerText = cfg.ko;
 
-            var nImg = document.getElementById('d-num-fixed');
-            if(cfg.num && cfg.num.length > 5) {
-                nImg.src = cfg.num;
-                nImg.style.display = 'block';
-            } else {
-                nImg.style.display = 'none';
-            }
+            document.getElementById('d-dest-jp').innerText = cfg.destJp;
+            document.getElementById('d-dest-en').innerText = cfg.destEn;
+            document.getElementById('d-dest-zh').innerText = cfg.destZh;
+            document.getElementById('d-dest-ko').innerText = cfg.destKo;
+
+            document.getElementById('d-car-num').innerText = cfg.carNum;
+            document.getElementById('d-num-fixed').src = cfg.num;
         }
 
         function openCfg() { document.getElementById('cfg-panel').style.display = 'block'; }
         function closeCfg() { document.getElementById('cfg-panel').style.display = 'none'; }
 
         window.onload = function() {
-            var saved = localStorage.getItem('tv_v11_config');
-            if(saved) apply(JSON.parse(saved));
+            var saved = localStorage.getItem('tv_v12_config');
+            if(saved) {
+                var c = JSON.parse(saved);
+                apply(c);
+                document.getElementById('i-jp').value = c.jp;
+                document.getElementById('i-en').value = c.en;
+                document.getElementById('i-zh').value = c.zh;
+                document.getElementById('i-ko').value = c.ko;
+                document.getElementById('i-dest-jp').value = c.destJp;
+                document.getElementById('i-dest-en').value = c.destEn;
+                document.getElementById('i-dest-zh').value = c.destZh;
+                document.getElementById('i-dest-ko').value = c.destKo;
+                document.getElementById('i-car-num').value = c.carNum;
+                document.getElementById('i-num').value = c.num;
+            }
         };
     </script>
 </body>
