@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>三菱トレインビジョン再現 (ピポラボ・デフォルト設定版)</title>
+    <title>三菱トレインビジョン再現 (レガシーブラウザ対応版)</title>
     <style>
         body {
             background-color: #f0f0f0;
@@ -25,29 +25,40 @@
             overflow: hidden;
         }
 
-        /* 上部ヘッダー */
+        /* ヘッダー: Android 4.4向けにベンダープレフィックスを追加 */
         .header-top {
             position: absolute;
-            top: 40px;
-            left: 60px;
-            right: 60px;
+            top: 5%;
+            left: 5%;
+            right: 5%;
+            display: -webkit-box;
+            display: -webkit-flex;
             display: flex;
+            -webkit-box-pack: justify;
+            -webkit-justify-content: space-between;
             justify-content: space-between;
+            -webkit-box-align: center;
+            -webkit-align-items: center;
             align-items: center;
             z-index: 10;
         }
 
         .info-left {
+            display: -webkit-box;
+            display: -webkit-flex;
             display: flex;
+            -webkit-box-align: center;
+            -webkit-align-items: center;
             align-items: center;
         }
 
-        /* 種別 */
+        /* 種別: 塗りつぶしが適用されない対策として display: block を明示 */
         .type-container-wrap {
             position: relative;
             width: 14vw;
             height: 4.5vw;
             margin-right: 20px;
+            background: transparent;
         }
 
         .type-box {
@@ -56,43 +67,59 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: #0000ff;
-            color: white;
-            border-radius: 12px;
+            background-color: #0000ff !important; /* 強制適用 */
+            color: #ffffff;
+            border-radius: 8px;
             font-size: 2.2vw;
             font-weight: bold;
+            display: -webkit-box;
+            display: -webkit-flex;
             display: flex;
-            align-items: center;
+            -webkit-box-pack: center;
+            -webkit-justify-content: center;
             justify-content: center;
+            -webkit-box-align: center;
+            -webkit-align-items: center;
+            align-items: center;
             opacity: 0;
+            -webkit-transition: opacity 0.4s linear;
             transition: opacity 0.4s linear;
         }
         .type-box.active { opacity: 1; }
 
-        /* 行先 */
         .dest-wrap {
             position: relative;
             height: 3.5vw;
             width: 30vw;
         }
 
-        /* 号車表示エリア */
+        /* 号車表示 */
         .car-info-group {
+            display: -webkit-box;
+            display: -webkit-flex;
             display: flex;
+            -webkit-box-align: center;
+            -webkit-align-items: center;
             align-items: center;
             font-size: 2.2vw;
             font-weight: bold;
         }
 
         .car-number-box {
-            background-color: #888;
-            color: white;
+            background-color: #888888 !important;
+            color: #ffffff;
             width: 3.2vw;
             height: 3.2vw;
+            display: -webkit-box;
+            display: -webkit-flex;
             display: flex;
-            align-items: center;
+            -webkit-box-pack: center;
+            -webkit-justify-content: center;
             justify-content: center;
-            border-radius: 6px;
+            -webkit-box-align: center;
+            -webkit-align-items: center;
+            align-items: center;
+            border-radius: 4px;
             font-size: 2.5vw;
             margin: 0 10px;
         }
@@ -100,16 +127,20 @@
         .car-label-side {
             position: relative;
             height: 3.2vw;
+            display: -webkit-box;
+            display: -webkit-flex;
             display: flex;
+            -webkit-box-align: center;
+            -webkit-align-items: center;
             align-items: center;
         }
-
-        .label-before { width: 8vw; justify-content: flex-end; }
-        .label-after { width: 6vw; justify-content: flex-start; }
+        .label-before { width: 8vw; -webkit-box-pack: end; -webkit-justify-content: flex-end; justify-content: flex-end; }
+        .label-after { width: 6vw; -webkit-box-pack: start; -webkit-justify-content: flex-start; justify-content: flex-start; }
 
         .fade-container {
             position: absolute;
             opacity: 0;
+            -webkit-transition: opacity 0.4s linear;
             transition: opacity 0.4s linear;
             white-space: nowrap;
         }
@@ -121,22 +152,29 @@
             top: 32%;
             width: 100%;
             height: 40%;
+            display: -webkit-box;
+            display: -webkit-flex;
             display: flex;
+            -webkit-box-align: center;
+            -webkit-align-items: center;
             align-items: center;
-            padding: 0 60px;
+            padding: 0 5%;
             box-sizing: border-box;
         }
 
         .fixed-elements {
+            display: -webkit-box;
+            display: -webkit-flex;
             display: flex;
+            -webkit-box-align: center;
+            -webkit-align-items: center;
             align-items: center;
-            height: 100%;
         }
 
         .label-wrap {
             position: relative;
             width: 10vw;
-            height: 60px;
+            height: 5vw;
             font-size: 3.5vw;
             font-weight: bold;
         }
@@ -144,23 +182,27 @@
         .numbering-fixed {
             height: 9vw;
             width: 9vw;
-            margin-left: 3vw;
-            object-fit: contain;
+            margin-left: 2vw;
             display: block;
         }
 
+        /* Android 4.4では 3D Cube が重なるため、シンプルな平面切り替えにフォールバックさせるための構造 */
         .station-stage {
+            -webkit-box-flex: 1;
+            -webkit-flex: 1;
             flex: 1;
             height: 100%;
             margin-left: 4vw;
-            perspective: 1000px;
+            overflow: hidden; /* はみ出し防止 */
         }
 
         .cube-text {
             width: 100%;
             height: 100%;
             position: relative;
+            -webkit-transform-style: preserve-3d;
             transform-style: preserve-3d;
+            -webkit-transition: -webkit-transform 0.6s linear;
             transition: transform 0.6s linear;
         }
 
@@ -168,48 +210,40 @@
             position: absolute;
             width: 100%;
             height: 100%;
+            -webkit-backface-visibility: hidden;
             backface-visibility: hidden;
+            display: -webkit-box;
+            display: -webkit-flex;
             display: flex;
+            -webkit-box-align: center;
+            -webkit-align-items: center;
             align-items: center;
-            color: #333;
+            background: #ffffff; /* 重なり対策：背景を白に */
         }
 
-        .face-jp { transform: rotateX(0deg) translateZ(80px); }
-        .face-en { transform: rotateX(90deg) translateZ(80px); }
-        .face-zh { transform: rotateX(180deg) translateZ(80px); }
-        .face-ko { transform: rotateX(270deg) translateZ(80px); }
+        /* translateZ の値を少し小さく調整 */
+        .face-jp { -webkit-transform: rotateX(0deg) translateZ(5vw); transform: rotateX(0deg) translateZ(5vw); }
+        .face-en { -webkit-transform: rotateX(90deg) translateZ(5vw); transform: rotateX(90deg) translateZ(5vw); }
+        .face-zh { -webkit-transform: rotateX(180deg) translateZ(5vw); transform: rotateX(180deg) translateZ(5vw); }
+        .face-ko { -webkit-transform: rotateX(270deg) translateZ(5vw); transform: rotateX(270deg) translateZ(5vw); }
 
-        .station-text { font-size: 9.8vw; font-weight: 900; letter-spacing: -2px; }
+        .station-text { font-size: 9.5vw; font-weight: 900; letter-spacing: -2px; }
 
-        /* 設定パネル */
-        .settings-panel {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95);
-            z-index: 9999;
-            color: white;
-            padding: 20px;
-            box-sizing: border-box;
-            display: none;
-            overflow-y: auto;
-        }
-
-        .setting-group { margin-bottom: 15px; border-bottom: 1px solid #333; padding-bottom: 10px; }
-        .setting-group label { display: block; font-size: 11px; color: #aaa; margin-bottom: 5px; }
-        .setting-group input { 
-            width: 100%; padding: 10px; font-size: 14px; border-radius: 4px; border: none; margin-bottom: 5px; box-sizing: border-box;
-        }
-
-        .btn-row { display: flex; gap: 10px; margin-top: 15px; }
-        .btn { flex: 1; padding: 12px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; }
-        .btn-save { background: #0000ff; color: white; }
-        .btn-close { background: #444; color: white; }
-
+        /* 設定ボタン */
         .config-btn {
             position: fixed; bottom: 15px; right: 15px;
-            width: 44px; height: 44px; background: rgba(0,0,0,0.05);
-            color: #ccc; border: 1px solid #ddd; border-radius: 50%; z-index: 1000; font-size: 20px;
+            width: 44px; height: 44px; background: #eee;
+            border: 1px solid #ccc; border-radius: 22px; z-index: 1000; font-size: 20px;
         }
+
+        .settings-panel {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; background: rgba(0,0,0,0.9);
+            z-index: 9999; color: white; padding: 10px; display: none; overflow-y: scroll;
+        }
+        .setting-group { margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 5px; }
+        .setting-group label { display: block; font-size: 12px; color: #ccc; }
+        .setting-group input { width: 100%; padding: 8px; font-size: 14px; margin-top: 3px; }
     </style>
 </head>
 <body>
@@ -227,7 +261,7 @@
                     <div class="fade-container active" id="d-dest-jp">西船橋 行き</div>
                     <div class="fade-container" id="d-dest-en">for Nishi-Funabashi</div>
                     <div class="fade-container" id="d-dest-zh">开往 西船桥</div>
-                    <div class="fade-container" id="d-dest-ko">니시후나바시 行</div>
+                    <div class="fade-container" id="d-dest-ko">니시후나バ시 行</div>
                 </div>
             </div>
 
@@ -273,44 +307,40 @@
     <button class="config-btn" onclick="openCfg()">⚙</button>
 
     <div id="cfg-panel" class="settings-panel">
-        <h3>トレインビジョン設定</h3>
-        
+        <h3>設定</h3>
         <div class="setting-group">
-            <label>駅名 (JP / EN / ZH / KO)</label>
+            <label>駅名</label>
             <input type="text" id="i-jp" value="ピポラボ">
             <input type="text" id="i-en" value="pipoLab">
             <input type="text" id="i-zh" value="皮波实验室">
-            <input type="text" id="i-ko" value="피포ラ 보라토리">
+            <input type="text" id="i-ko" value="피포라 보라토리">
         </div>
-
         <div class="setting-group">
-            <label>行先 (JP / EN / ZH / KO)</label>
+            <label>行先</label>
             <input type="text" id="i-dest-jp" value="西船橋 行き">
             <input type="text" id="i-dest-en" value="for Nishi-Funabashi">
-            <input type="text" id="i-dest-zh" value="开往 西船桥">
-            <input type="text" id="i-dest-ko" value="니시후나바시 行">
         </div>
-
         <div class="setting-group">
-            <label>号車番号 / ナンバリング画像URL</label>
+            <label>号車 / ナンバリングURL</label>
             <input type="text" id="i-car-num" value="1">
             <input type="text" id="i-num" value="https://pipocorp-japan.github.io/asset/Newpipo.jpg">
         </div>
-
-        <div class="btn-row">
-            <button class="btn btn-save" onclick="saveCfg()">適用・保存</button>
-            <button class="btn btn-close" onclick="closeCfg()">閉じる</button>
-        </div>
+        <button onclick="saveCfg()" style="padding:10px; width:100%;">保存</button>
+        <button onclick="closeCfg()" style="padding:10px; width:100%; margin-top:5px;">閉じる</button>
     </div>
 
     <script>
         var cube = document.getElementById('cube');
         var step = 0;
 
+        // Android 4.4向けに、3D変形が効かない場合のフォールバック処理を検討
         function updateAllTranslations() {
             step++;
             var index = step % 4;
             var angle = step * -90; 
+            
+            // ベンダープレフィックス付きで回転
+            cube.style.webkitTransform = "rotateX(" + angle + "deg)";
             cube.style.transform = "rotateX(" + angle + "deg)";
 
             toggleFade('label-container', index);
@@ -321,7 +351,9 @@
         }
 
         function toggleFade(parentId, index) {
-            var items = document.getElementById(parentId).children;
+            var parent = document.getElementById(parentId);
+            if(!parent) return;
+            var items = parent.children;
             for(var i=0; i<items.length; i++) {
                 items[i].classList.remove('active');
             }
@@ -338,12 +370,10 @@
                 ko: document.getElementById('i-ko').value,
                 destJp: document.getElementById('i-dest-jp').value,
                 destEn: document.getElementById('i-dest-en').value,
-                destZh: document.getElementById('i-dest-zh').value,
-                destKo: document.getElementById('i-dest-ko').value,
                 carNum: document.getElementById('i-car-num').value,
                 num: document.getElementById('i-num').value
             };
-            localStorage.setItem('tv_v12_config', JSON.stringify(cfg));
+            localStorage.setItem('tv_v13_config', JSON.stringify(cfg));
             apply(cfg);
             closeCfg();
         }
@@ -353,12 +383,8 @@
             document.getElementById('d-en').innerText = cfg.en;
             document.getElementById('d-zh').innerText = cfg.zh;
             document.getElementById('d-ko').innerText = cfg.ko;
-
             document.getElementById('d-dest-jp').innerText = cfg.destJp;
             document.getElementById('d-dest-en').innerText = cfg.destEn;
-            document.getElementById('d-dest-zh').innerText = cfg.destZh;
-            document.getElementById('d-dest-ko').innerText = cfg.destKo;
-
             document.getElementById('d-car-num').innerText = cfg.carNum;
             document.getElementById('d-num-fixed').src = cfg.num;
         }
@@ -367,21 +393,8 @@
         function closeCfg() { document.getElementById('cfg-panel').style.display = 'none'; }
 
         window.onload = function() {
-            var saved = localStorage.getItem('tv_v12_config');
-            if(saved) {
-                var c = JSON.parse(saved);
-                apply(c);
-                document.getElementById('i-jp').value = c.jp;
-                document.getElementById('i-en').value = c.en;
-                document.getElementById('i-zh').value = c.zh;
-                document.getElementById('i-ko').value = c.ko;
-                document.getElementById('i-dest-jp').value = c.destJp;
-                document.getElementById('i-dest-en').value = c.destEn;
-                document.getElementById('i-dest-zh').value = c.destZh;
-                document.getElementById('i-dest-ko').value = c.destKo;
-                document.getElementById('i-car-num').value = c.carNum;
-                document.getElementById('i-num').value = c.num;
-            }
+            var saved = localStorage.getItem('tv_v13_config');
+            if(saved) apply(JSON.parse(saved));
         };
     </script>
 </body>
